@@ -11,12 +11,11 @@ This module deals with enhanced support for a data access layer built on [AWS Dy
 
 Technical infos can be found on the [project page](https://derjust.github.io/spring-data-dynamodb/).
 
-<br>
-## 我自己的修改 ##
-1. 增加多全局二级索引搜索功能
-2. 改善分页查询性能，让PageSize生效，并去掉count操作
-3. 修复Instant类型作为查询条件时，如果有Instant到Long类型的转换器会导致查询类型被设置为String的错误
-4. 修复根据一级索引进行查询，RangeKey是范围查询时的错误
+## My own modification ##
+1. Add multi-global secondary index search function
+2. Improve the performance of paging queries, make "size" of Pageable parameter effective, and remove the count operation
+3. Fixed property type error by setting targetPropertyType to converter result type if converter exists
+4. Fixed an error when the RangeKey is a range query
 
 ## Supported Features ##
 
