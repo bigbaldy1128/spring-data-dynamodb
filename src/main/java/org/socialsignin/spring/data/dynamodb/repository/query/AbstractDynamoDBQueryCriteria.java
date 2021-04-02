@@ -15,16 +15,8 @@
  */
 package org.socialsignin.spring.data.dynamodb.repository.query;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperFieldModel;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapperTableModel;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMarshaller;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBQueryExpression;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTypeConverter;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.amazonaws.services.dynamodbv2.model.QueryRequest;
-import com.amazonaws.services.dynamodbv2.model.Select;
+import com.amazonaws.services.dynamodbv2.datamodeling.*;
+import com.amazonaws.services.dynamodbv2.model.*;
 import org.socialsignin.spring.data.dynamodb.core.DynamoDBOperations;
 import org.socialsignin.spring.data.dynamodb.marshaller.Date2IsoDynamoDBMarshaller;
 import org.socialsignin.spring.data.dynamodb.marshaller.Instant2IsoDynamoDBMarshaller;
@@ -37,24 +29,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
+import org.springframework.util.*;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
 
 /**
  * @author Michael Lavelle
@@ -92,7 +71,6 @@ public abstract class AbstractDynamoDBQueryCriteria<T, ID> implements DynamoDBQu
 		// TODO Set other query request properties based on config
 		QueryRequest queryRequest = new QueryRequest();
 		queryRequest.setTableName(tableName);
-		queryRequest.setIndexName(theIndexName);
 
 		if (isApplicableForGlobalSecondaryIndex()) {
 			List<String> allowedSortProperties = new ArrayList<>();
@@ -312,7 +290,7 @@ public abstract class AbstractDynamoDBQueryCriteria<T, ID> implements DynamoDBQu
 	}
 
 	public AbstractDynamoDBQueryCriteria(DynamoDBEntityInformation<T, ID> dynamoDBEntityInformation,
-			final DynamoDBMapperTableModel<T> tableModel) {
+                                         final DynamoDBMapperTableModel<T> tableModel) {
 		this.clazz = dynamoDBEntityInformation.getJavaType();
 		this.attributeConditions = new LinkedMultiValueMap<>();
 		this.propertyConditions = new LinkedMultiValueMap<>();
@@ -419,7 +397,7 @@ public abstract class AbstractDynamoDBQueryCriteria<T, ID> implements DynamoDBQu
 
 	protected boolean hasIndexHashKeyEqualCondition() {
 		boolean hasIndexHashKeyEqualCondition = false;
-		for (Map.Entry<String, List<Condition>> propertyConditionList : propertyConditions.entrySet()) {
+		for (Entry<String, List<Condition>> propertyConditionList : propertyConditions.entrySet()) {
 			if (entityInformation.isGlobalIndexHashKeyProperty(propertyConditionList.getKey())) {
 				for (Condition condition : propertyConditionList.getValue()) {
 					if (condition.getComparisonOperator().equals(ComparisonOperator.EQ.name())) {
@@ -436,7 +414,7 @@ public abstract class AbstractDynamoDBQueryCriteria<T, ID> implements DynamoDBQu
 
 	protected boolean hasIndexRangeKeyCondition() {
 		boolean hasIndexRangeKeyCondition = false;
-		for (Map.Entry<String, List<Condition>> propertyConditionList : propertyConditions.entrySet()) {
+		for (Entry<String, List<Condition>> propertyConditionList : propertyConditions.entrySet()) {
 			if (entityInformation.isGlobalIndexRangeKeyProperty(propertyConditionList.getKey())) {
 				hasIndexRangeKeyCondition = true;
 			}
@@ -745,10 +723,12 @@ public abstract class AbstractDynamoDBQueryCriteria<T, ID> implements DynamoDBQu
 		if (ClassUtils.isAssignableValue(AttributeValue.class, attributeValue)) {
 			attributeValueList.add((AttributeValue) attributeValue);
 		} else {
-			boolean marshalled = !alreadyMarshalledIfRequired && attributeValue != o
-					&& !entityInformation.isCompositeHashAndRangeKeyProperty(propertyName);
-
-			Class<?> targetPropertyType = marshalled ? String.class : propertyType;
+			Class<?> targetPropertyType;
+			if (attributeValue != o) {
+				targetPropertyType = attributeValue.getClass();
+			} else {
+				targetPropertyType = propertyType;
+			}
 			addAttributeValue(attributeValueList, attributeValue, targetPropertyType, true);
 		}
 
