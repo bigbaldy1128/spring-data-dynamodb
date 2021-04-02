@@ -12,11 +12,15 @@ This module deals with enhanced support for a data access layer built on [AWS Dy
 Technical infos can be found on the [project page](https://derjust.github.io/spring-data-dynamodb/).
 
 <br>
+<br>
+<br>
+
 ## My own modification ##
-1. Add multi-global secondary index search function
-2. Improve the performance of paging queries, make "size" of Pageable parameter effective, and remove the count operation
-3. Fixed property type error by setting targetPropertyType to converter result type if converter exists
-4. Fixed an error when the RangeKey is a range query
+
+* Add multi-global secondary index search function
+* Improve the performance of paging queries, make "size" of Pageable parameter effective, and remove the count operation
+* Fixed property type error by setting targetPropertyType to converter result type if converter exists
+* Fixed an error when the RangeKey is a range query
 
 ## Supported Features ##
 
