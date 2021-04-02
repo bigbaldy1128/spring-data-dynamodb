@@ -22,6 +22,8 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.parser.PartTree;
 
+import java.util.Optional;
+
 /**
  * @author Michael Lavelle
  * @author Sebastian Just
@@ -39,8 +41,16 @@ public class PartTreeDynamoDBQuery<T, ID> extends AbstractDynamoDBQuery<T, ID> i
 
 	protected DynamoDBQueryCreator<T, ID> createQueryCreator(ParametersParameterAccessor accessor) {
 		DynamoDBQueryMethod<T, ID> queryMethod = getQueryMethod();
+
+		Optional<Integer> limitOptional = Optional.empty();
+		if (queryMethod.getLimitResults().isPresent()) {
+			limitOptional = queryMethod.getLimitResults();
+		} else if (accessor.getPageable().isPaged()) {
+			limitOptional = Optional.of(accessor.getPageable().getPageSize());
+		}
+
 		return new DynamoDBQueryCreator<>(tree, accessor, queryMethod.getEntityInformation(),
-				queryMethod.getProjectionExpression(), queryMethod.getLimitResults(), queryMethod.getConsistentReadMode(), queryMethod.getFilterExpression(),
+				queryMethod.getProjectionExpression(), limitOptional, queryMethod.getConsistentReadMode(), queryMethod.getFilterExpression(),
 				queryMethod.getExpressionAttributeNames(), queryMethod.getExpressionAttributeValues(), dynamoDBOperations);
 	}
 

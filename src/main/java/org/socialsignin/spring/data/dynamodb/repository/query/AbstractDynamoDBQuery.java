@@ -176,23 +176,8 @@ public abstract class AbstractDynamoDBQuery<T, ID> implements RepositoryQuery, E
 				}
 			}
 
-			// Then Count the result set size
-			Query<Long> countQuery = dynamoDBQuery.doCreateCountQueryWithPermissions(values, true);
-			long count = countQuery.getSingleResult();
-
-			// Finally wrap the result in a page -
-			if (!pageable.isUnpaged()) {
-				// either seek to the proper part of the result set
-				if (getResultsRestrictionIfApplicable() != null) {
-					count = Math.min(count, getResultsRestrictionIfApplicable());
-				}
-
-				List<T> results = readPageOfResultsRestrictMaxResultsIfNecessary(iterator, pageable.getPageSize());
-				return new PageImpl<>(results, pageable, count);
-			} else {
-				// or treat the whole (lazy) list as the result page if it's unpaged
-				return new UnpagedPageImpl<>(allResults, count);
-			}
+			List<T> results = readPageOfResultsRestrictMaxResultsIfNecessary(iterator, pageable.getPageSize());
+			return new PageImpl<>(results, pageable, 0);
 		}
 	}
 

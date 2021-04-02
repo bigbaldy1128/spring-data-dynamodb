@@ -126,6 +126,27 @@ public abstract class AbstractDynamoDBQueryCriteria<T, ID> implements DynamoDBQu
 				}
 			}
 
+			// Set real global second index
+			List<String> keys = new ArrayList<>(keyConditions.keySet());
+			start:
+			for (Entry<String, String[]> e : entityInformation.getGlobalSecondaryIndexNamesByPropertyName().entrySet()) {
+				String[] indexNames = e.getValue();
+				for (String indexName : indexNames) {
+					boolean flag = false;
+					for (String key : keys) {
+						if (!indexName.contains(key)) {
+							flag = false;
+							break;
+						}
+						flag = true;
+					}
+					if (flag) {
+						queryRequest.setIndexName(indexName);
+						break start;
+					}
+				}
+			}
+
 			for (Order order : sort) {
 				final String sortProperty = order.getProperty();
 				if (entityInformation.isGlobalIndexRangeKeyProperty(sortProperty)) {
@@ -135,9 +156,19 @@ public abstract class AbstractDynamoDBQueryCriteria<T, ID> implements DynamoDBQu
 
 			queryRequest.setKeyConditions(keyConditions);
 			// Might be overwritten in the actual Query classes
-			if (projection.isPresent()) {
+			if (projection.isPresent() || queryRequest.getIndexName() == null) {
+				Map<String, String> attributeMap = new HashMap<>();
+				StringBuilder projectionSb = new StringBuilder();
+				for (Entry<String, String> e : attributeNamesByPropertyName.entrySet()) {
+					String attributeName = "#" + e.getKey();
+					String propertyName = e.getValue();
+					attributeMap.put(attributeName, propertyName);
+					projectionSb.append(attributeName).append(",");
+				}
+				projection = Optional.of(projectionSb.substring(0, projectionSb.length() - 1));
 				queryRequest.setSelect(Select.SPECIFIC_ATTRIBUTES);
 				queryRequest.setProjectionExpression(projection.get());
+				queryRequest.setExpressionAttributeNames(attributeMap);
 			} else {
 				queryRequest.setSelect(Select.ALL_PROJECTED_ATTRIBUTES);
 			}
