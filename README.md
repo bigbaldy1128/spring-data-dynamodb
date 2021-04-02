@@ -10,6 +10,7 @@ The primary goal of the [Spring® Data](https://projects.spring.io/spring-data/)
 This module deals with enhanced support for a data access layer built on [AWS DynamoDB](https://aws.amazon.com/dynamodb/).
 
 Technical infos can be found on the [project page](https://derjust.github.io/spring-data-dynamodb/).
+
 <br>
 ## My own modification ##
 1. Add multi-global secondary index search function
